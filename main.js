@@ -4,12 +4,20 @@ const boxGeometry = (width = 1, height = 1, depth = 1) => {
   return new THREE.BoxGeometry(width, height, depth)
 }
 
-function cubeMesh() {
-  const geometry = boxGeometry();
+const coneGeometry = ({
+  radius = 1,
+  height = 1,
+  radialSegments = 16,
+  heightSegments = 4,
+  openEnded = true,
+  thetaStart = Math.PI * 0.18,
+  thetaLength = Math.PI * 0.82
+} = {}) => {
+  return new THREE.ConeGeometry(radius, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
+};
 
-  const material = new THREE.MeshPhongMaterial({ color: 0x44aa88 });
-
-  return new THREE.Mesh(geometry, material);
+const sphereGeometry = (radius = 1, widthSegments = 30, heightSegments = 30) => {
+  return new THREE.SphereGeometry(radius, widthSegments, heightSegments);
 }
 
 function makeMesh(geometry, color) {
@@ -53,6 +61,27 @@ function resizeRendererToDisplaySize(renderer) {
   return needResize;
 }
 
+const cubeOfColorAt = (c, { x }) => {
+  const cube = makeMesh(boxGeometry(), c);
+  cube.position.x = x;
+
+  return cube;
+};
+
+const coneOfColorAt = (c, { x }) => {
+  const cone = makeMesh(coneGeometry(), c);
+  cone.position.x = x;
+
+  return cone;
+}
+
+const sphereOfColorAt = (c, { x }) => {
+  const sphere = makeMesh(sphereGeometry(), c);
+  sphere.position.x = x;
+
+  return sphere;
+};
+
 function main() {
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
@@ -69,24 +98,23 @@ function main() {
 
   const scene = new THREE.Scene();
 
-  const cubeOfColorAt = (c, {x}) => {
-    const cube = makeMesh(boxGeometry(), c);
-    cube.position.x = x;
-
-    return cube;
-  };
-
-  const cubeDefs = [
-    { color: 0x44aa88, initialX: 0},
-    { color: 0x8844aa, initialX: -2},
-    { color: 0xaa8844, initialX: 2},
+  const meshDefs = [
+    { color: 0x44aa88, initialX: 0 },
+    { color: 0x8844aa, initialX: -2 },
+    { color: 0xaa8844, initialX: 2 },
   ];
 
-  const cubes = cubeDefs.map(def => {
+  const meshes = meshDefs.map((def, i) => {
+    if (i % 3 === 0) {
+      return coneOfColorAt(def.color, { x: def.initialX });
+    }
+    if (i % 2 === 0) {
+      return sphereOfColorAt(def.color, { x: def.initialX })
+    }
     return cubeOfColorAt(def.color, { x: def.initialX });
   });
 
-  cubes.forEach(cube => scene.add(cube));
+  meshes.forEach(cube => scene.add(cube));
 
   // TODO: make this come from a nearby star
   const light = directionalLight();
@@ -95,7 +123,7 @@ function main() {
 
   const ops = [
     function rotatingCubes({ timeSeconds: t }) {
-      cubes.forEach((cube, i) => {
+      meshes.forEach((cube, i) => {
         const speed = 1 + i * .1;
         const rotation = t * speed;
         cube.rotation.x = rotation;
@@ -123,7 +151,7 @@ function main() {
 
     requestAnimationFrame(render);
 
-    count ++;
+    count++;
 
     let fps = count / timeSeconds;
 
