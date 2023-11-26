@@ -55,8 +55,8 @@ function main() {
 
   const cubeDefs = [
     { color: 0x44aa88, initialX: 0},
-    { color: 0x44aa88, initialX: -2},
-    { color: 0x44aa88, initialX: 2},
+    { color: 0x8844aa, initialX: -2},
+    { color: 0xaa8844, initialX: 2},
   ];
 
   const cubes = cubeDefs.map(def => {
@@ -72,9 +72,11 @@ function main() {
 
   const ops = [
     function rotatingCubes({ timeSeconds: t }) {
-      cubes.forEach(cube => {
-        cube.rotation.x = t;
-        cube.rotation.y = t;
+      cubes.forEach((cube, i) => {
+        const speed = 1 + i * .1;
+        const rotation = t * speed;
+        cube.rotation.x = rotation;
+        cube.rotation.y = rotation;
       });
     },
   ];
