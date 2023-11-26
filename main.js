@@ -30,6 +30,29 @@ function directionalLight() {
   return light;
 }
 
+function resizeCameraAspectToDisplaySize(canvas, camera) {
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  const needResize = canvas.width !== width || canvas.height !== height;
+  if (needResize) {
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  }
+  return needResize;
+}
+
+function resizeRendererToDisplaySize(renderer) {
+  const canvas = renderer.domElement;
+  const pixelRatio = window.devicePixelRatio;
+  const width = canvas.clientWidth * pixelRatio | 0;
+  const height = canvas.clientHeight * pixelRatio | 0;
+  const needResize = canvas.width !== width || canvas.height !== height;
+  if (needResize) {
+    renderer.setSize(width, height, false);
+  }
+  return needResize;
+}
+
 function main() {
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
@@ -90,13 +113,9 @@ function main() {
   const render = time => {
     const timeSeconds = time * 0.001;
 
-    if (window.innerWidth != w) {
-      canvas.width = window.innerWidth;
-    }
+    resizeCameraAspectToDisplaySize(canvas, camera);
 
-    if (window.innerHeight != h) {
-      canvas.height = window.innerHeight;
-    }
+    resizeRendererToDisplaySize(renderer);
 
     ops.map(op => op({ time, timeSeconds }));
 
