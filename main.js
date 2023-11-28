@@ -7,7 +7,8 @@ const boxGeometry = (width = 1, height = 1, depth = 1) => {
   return new THREE.BoxGeometry(width, height, depth)
 }
 
-const coneGeometry = ({
+// TODO: Fix this function with better defaults
+const coneGeometryOld = ({
   radius = 1,
   height = 1,
   radialSegments = 16,
@@ -19,7 +20,15 @@ const coneGeometry = ({
   return new THREE.ConeGeometry(radius, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
 };
 
-const sphereGeometry = (radius = 1, widthSegments = 30, heightSegments = 30) => {
+const coneGeometry = ({
+  radius = 100,
+  height = 100,
+  radialSegments = 16,
+} = {}) => {
+  return new THREE.ConeGeometry(radius, height, radialSegments);
+};
+
+const sphereGeometry = (radius = 100, widthSegments = 30, heightSegments = 30) => {
   return new THREE.SphereGeometry(radius, widthSegments, heightSegments);
 }
 
@@ -74,6 +83,17 @@ const sphereOfColorAt = (c, { x, y, z }) => {
   return sphere;
 };
 
+const cone4OfColorAt = (c, { x, y, z }) => {
+  const cone = makeMesh(coneGeometry({
+  radius: 0.003,
+  height: 0.01,
+  radialSegments: 4,
+  }), c);
+  cone.position.set(x, y, z);
+
+  return cone;
+};
+
 function makeStats() {
   const text2 = document.createElement('div');
   text2.style.position = 'absolute';
@@ -97,7 +117,7 @@ function main() {
 
   const fov = 75;
   const aspect = 2;  // the canvas default
-  const near = 0.1;
+  const near = 0.001;
   const far = 5000;
 
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
@@ -113,6 +133,9 @@ function main() {
     new THREE.Vector3(0, 1, 0),
     0.35
   );
+
+  // TODO: add: uiRingOfColor(red, { ... }) // something to hold the direction indicator
+  const nav = cone4OfColorAt(0xb4331e, { x: 0.06, y: -0.04, z: -0.07 });
 
   const playerVelocity = new THREE.Vector3();
   const playerDirection = new THREE.Vector3();
@@ -166,6 +189,43 @@ function main() {
     // playerCollisions();
 
     camera.position.copy(playerCollider.end);
+  }
+
+  // origin position: { x: 0.06, y: -0.04, z: -0.07 }
+  function updateNav(deltaTime) {
+    nav.position.copy(playerCollider.end);
+
+    
+    nav.position.add(new THREE.Vector3(0.06, -0.04, -0.07));
+    // nav.rotation.set(...playerVelocity.toArray());
+    // nav.rotation.set(0,0,1);
+    // nav.up.copy(new THREE.Vector3().crossVectors(playerVelocity, playerCollider.end));
+    nav.setRotationFromQuaternion(get_rotation_between(playerVelocity, camera.up));
+  }
+
+  // TODO: instead use method here: https://threejs.org/examples/webgl_math_orientation_transform
+  // This almost works though, thanks to: https://stackoverflow.com/a/11741520
+  function get_rotation_between(u, v) {
+    const a = new THREE.Vector3();
+    a.copy(u);
+
+    const b = new THREE.Vector3();
+    b.copy(v);
+
+    // It is important that the inputs are of equal length when
+    // calculating the half-way vector.
+    a.normalize();
+    b.normalize();
+
+    a.cross(b)
+
+    const q = new THREE.Quaternion();
+    const c = new THREE.Vector3();
+    c.copy(a);
+
+    q.set(c.x, c.y, c.z, u.dot(v));
+
+    return q;
   }
 
   function getForwardVector() {
@@ -245,6 +305,7 @@ function main() {
   });
 
   meshes.forEach(cube => scene.add(cube));
+  scene.add(nav);
 
   const ops = [
     function rotatingCubes({ timeSeconds: t }) {
@@ -271,6 +332,8 @@ function main() {
       controls(deltaTime);
 
       updatePlayer(deltaTime);
+
+      updateNav(deltaTime);
 
       // updateSpheres(deltaTime);
 
