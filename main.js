@@ -96,6 +96,8 @@ function main() {
   camera.rotation.order = 'YXZ';
 
   const playerSpeed = 0.25;
+  const playerBoostSpeed = 0.95;
+  let boosting = false;
 
   // TODO: a ship
   const playerCollider = new Capsule(
@@ -187,8 +189,13 @@ function main() {
     // gives a bit of air control
     // const speedDelta = deltaTime * (playerOnFloor ? 25 : 8);
 
+    boosting = false;
+    if (keyStates['ShiftLeft']) {
+      boosting = true;
+    }
+
     // TODO: modify by walking speed or based on vehicle thrust level
-    const speedDelta = deltaTime * playerSpeed; // * 25;
+    const speedDelta = deltaTime * (boosting ? playerBoostSpeed : playerSpeed); // * 25;
 
     if (keyStates['KeyW']) {
       playerVelocity.add(getForwardVector().multiplyScalar(speedDelta));
