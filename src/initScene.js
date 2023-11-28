@@ -19,8 +19,6 @@ function fillLight() {
 export default function initScene() {
   const scene = new THREE.Scene();
 
-  scene.fog = new THREE.Fog( 0x88ccee, 0, 50 );
-
   // TODO: make this come from a nearby star
   const light = directionalLight();
   scene.add(light);
