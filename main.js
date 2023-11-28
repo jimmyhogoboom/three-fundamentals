@@ -28,10 +28,6 @@ function makeMesh(geometry, color) {
   return new THREE.Mesh(geometry, material);
 }
 
-function renderScene(renderer, scene, camera) {
-  renderer.render(scene, camera);
-}
-
 function resizeCameraAspectToDisplaySize(canvas, camera) {
   const width = canvas.clientWidth;
   const height = canvas.clientHeight;
@@ -66,19 +62,14 @@ const cubeOfColorAt = (c, { x, y, z }) => {
 
 const coneOfColorAt = (c, { x, y, z }) => {
   const cone = makeMesh(coneGeometry(), c);
-
-  cone.position.x = x;
-  cone.position.y = y;
-  cone.position.z = z;
+  cone.position.set(x, y, z);
 
   return cone;
 }
 
 const sphereOfColorAt = (c, { x, y, z }) => {
   const sphere = makeMesh(sphereGeometry(), c);
-  sphere.position.x = x;
-  sphere.position.y = y;
-  sphere.position.z = z;
+  sphere.position.set(x, y, z);
 
   return sphere;
 };
@@ -305,7 +296,7 @@ function main() {
 
     ops.map(op => op({ time, timeSeconds }));
 
-    renderScene(renderer, scene, camera);
+    renderer.render(scene, camera);
 
     requestAnimationFrame(render);
 
@@ -319,9 +310,9 @@ function main() {
     }
 
     setStats(Object.entries({
-      playerVelocityX: playerVelocity.x,
-      playerVelocityY: playerVelocity.y,
-      playerVelocityZ: playerVelocity.z,
+      playerVelocityX: (playerVelocity.x * 100).toFixed(2),
+      playerVelocityY: (playerVelocity.y * 100).toFixed(2),
+      playerVelocityZ: (playerVelocity.z * 100).toFixed(2),
       fps
     }).map(([k, v]) => `${k}: ${v}`).join('<br/>'));
   }
