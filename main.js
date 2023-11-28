@@ -83,7 +83,24 @@ const sphereOfColorAt = (c, { x, y, z }) => {
   return sphere;
 };
 
+function makeStats() {
+  const text2 = document.createElement('div');
+  text2.style.position = 'absolute';
+  //text2.style.zIndex = 1;    // if you still don't see the label, try uncommenting this
+  text2.style.width = 100;
+  text2.style.height = 100;
+  text2.style.backgroundColor = "blue";
+  text2.innerHTML = "hi there!";
+  text2.style.top = 10 + 'px';
+  text2.style.left = 10 + 'px';
+  document.body.appendChild(text2);
+
+  return [text2, value => text2.innerHTML = value];
+}
+
 function main() {
+  const [stats, setStats] = makeStats();
+
   const canvas = document.querySelector('#c');
   const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
 
@@ -249,8 +266,6 @@ function main() {
     },
   ];
 
-  let count = 0;
-
   // Begin rendering loop
   const STEPS_PER_FRAME = 5;
 
@@ -274,6 +289,10 @@ function main() {
     // stats.update();
   }
 
+  let count = 0;
+  let countTime = 0;
+  let fps = count;
+  const FPS_REFRESH = 0.5;
   // TODO: combine animate and render
   const render = time => {
     const timeSeconds = time * 0.001;
@@ -292,13 +311,23 @@ function main() {
 
     count++;
 
-    let fps = count / timeSeconds;
+    const dif = timeSeconds - countTime;
+    if (dif > FPS_REFRESH) {
+      countTime = timeSeconds;
+      fps = Math.round(count / dif);
+      count = 0;
+    }
 
-    // if (count % 20 === 0 )
-    //   console.log(count, time, fps)
+    setStats(Object.entries({
+      playerVelocityX: playerVelocity.x,
+      playerVelocityY: playerVelocity.y,
+      playerVelocityZ: playerVelocity.z,
+      fps
+    }).map(([k, v]) => `${k}: ${v}`).join('<br/>'));
   }
 
   requestAnimationFrame(render);
+
 }
 
 main();
